@@ -81,15 +81,9 @@ impl Quiz{
     ///
     /// # Errors
     ///
-    /// Returns an `xml::writer::Error` if there's an issue writing the XML data.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use moodle_xml::quiz::Quiz
-    /// let mut quiz = Quiz::new("testi_categoria".to_string(),None);
-    /// quiz.quiz_xml("filepath".to_string(),"filename".to_string());
-    /// ```
+    /// Returns an QuizError which can be of type
+    /// WriterError - `xml::writer::Error` if there's an issue writing the XML data.
+    /// EmptyError - if question or answers are empty. 
     pub fn quiz_xml(&mut self, filepath: String, filename: String) -> Result<(), QuizError>{
         // Specify the file and its path
         let mut file_path = filepath; 
