@@ -3,6 +3,15 @@ use std::fs::File;
 use crate::question::Question;
 use std::fmt;
 
+/// Error type for Quiz, Question and Answer struct
+/// 
+/// ### Errors
+/// 
+/// WriterError ```xml::writer::Error``` - xml-rs writer error
+/// 
+/// ```EmptyError``` - Error when generating empty quiz or question
+/// 
+/// ```ValueError``` - Error when generating answer with too much points
 #[derive(Debug)]
 pub enum QuizError{
     WriterError(xml::writer::Error),

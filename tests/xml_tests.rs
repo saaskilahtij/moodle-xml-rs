@@ -69,7 +69,7 @@ mod tests{
 
         let shortq = QuestionType::ShortAnswer;
 
-        let mut question = Question::new("TRUE".into(), "(),./;'[]-=<>?:{}|_+!@#$%^&*()`~".into(), shortq);
+        let mut question = Question::new("TRUE".into(), "(),./;'\"[]-=<>?:{}|\\_+!@#$%^&*()`~".into(), shortq);
         
         let answer = Answer::new(100, "NaN".into(), Some("1E02".into()));
 
