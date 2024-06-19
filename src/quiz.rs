@@ -6,7 +6,8 @@ use std::fmt;
 #[derive(Debug)]
 pub enum QuizError{
     WriterError(xml::writer::Error),
-    EmptyError(String)
+    EmptyError(String),
+    ValueError(String)
 }
 impl From<xml::writer::Error> for QuizError{
     fn from(e: xml::writer::Error) -> Self {
@@ -18,6 +19,11 @@ impl From<EmptyError> for QuizError{
         QuizError::EmptyError(e.to_string())
     }
 }
+impl From<ValueError> for QuizError{
+    fn from(e: ValueError) -> Self {
+        QuizError::ValueError(e.to_string())
+    }
+}
 
 #[derive(Debug)]
 pub struct EmptyError;
@@ -25,6 +31,15 @@ pub struct EmptyError;
 impl fmt::Display for EmptyError{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("Quiz questions or answer is empty")
+    }
+}
+
+#[derive(Debug)]
+pub struct ValueError;
+
+impl fmt::Display for ValueError{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("Answer type has value outside of limits")
     }
 }
 

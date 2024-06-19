@@ -23,6 +23,22 @@ mod tests{
         
         assert!(quiz.quiz_xml("".into(), "testi_quiz.xml".into()).is_ok());
     }
+    #[test]
+    fn pointlimit_test(){
+        let mut quiz = Quiz::new("testi_categoria".into(),None);
+
+        let shortq = QuestionType::ShortAnswer;
+
+        let mut question = Question::new("Easy question".into(), "Kenella on S rinnassa".into(), shortq);
+        
+        let answer = Answer::new(200, "Superman".into(), Some("Oikein".into()));
+
+        question.add_answer(answer);
+        quiz.add_question(question);
+
+        
+        assert!(quiz.quiz_xml("".into(), "testi_quiz.xml".into()).is_err());
+    }
 
     #[test]
     fn empty_quiz(){

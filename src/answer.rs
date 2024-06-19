@@ -1,6 +1,8 @@
 use xml::writer::{XmlEvent, EventWriter};
 use std::fs::File;
 
+use crate::quiz::{ValueError,QuizError};
+
 pub struct Answer{
     pub fraction: u8,
     pub text: String,
@@ -23,7 +25,10 @@ impl Answer{
         }
     }
     /// Writes answer part of xml for EventWriter<File>
-    pub fn answer_xml(&mut self, writer: &mut EventWriter<File>) -> Result<(),xml::writer::Error>{
+    pub fn answer_xml(&mut self, writer: &mut EventWriter<File>) -> Result<(),QuizError>{
+        if self.fraction > 100{
+            return Err(ValueError.into());
+        }
         writer.write(XmlEvent::start_element("answer").attr("fraction", self.fraction.to_string().as_str()))?;
         writer.write(XmlEvent::start_element("text"))?;
         writer.write(XmlEvent::characters(self.text.as_str()))?;
