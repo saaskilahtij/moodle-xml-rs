@@ -1,14 +1,16 @@
 #[cfg(test)]
 mod tests{
-
     use moodle_xml::quiz::Quiz;
     use moodle_xml::question::Question;
     use moodle_xml::question::QuestionType;
     use moodle_xml::answer::Answer;
-    
 
+    use std::io::BufReader;
+    use xml::reader::EventReader;
+    use std::fs::File;
+    
     #[test]
-    fn add_quiz_xml(){
+    fn test_file_creation(){
         let mut quiz = Quiz::new("testi_categoria".into(),None);
 
         let shortq = QuestionType::ShortAnswer;
@@ -21,8 +23,18 @@ mod tests{
         quiz.add_question(question);
 
         
-        assert!(quiz.quiz_xml("".into(), "testi_quiz.xml".into()).is_ok());
+        assert!(quiz.quiz_xml("".into(), "testi_parser.xml".into()).is_ok());
+        
+        let file = File::open("testi_parser.xml").expect("Cannot open file");
+        let file = BufReader::new(file);
+
+        let parser = EventReader::new(file);
+
+        for e in parser{
+            assert!(e.is_ok())
+        }
     }
+
     #[test]
     fn pointlimit_test(){
         let mut quiz = Quiz::new("testi_categoria".into(),None);
