@@ -1,26 +1,30 @@
-use crate::question::Question;
-use std::fmt;
+use crate::question::QuestionType;
 use std::fs::File;
+use std::{fmt, ops::Deref};
 use xml::writer::{EmitterConfig, XmlEvent};
 
 /// Error type for Quiz, Question and Answer struct
 ///
 /// ### Errors
 ///
-/// WriterError ```xml::writer::Error``` - xml-rs writer error
+/// XMLWriterError ```xml::writer::Error``` - xml-rs writer error
 ///
 /// ```EmptyError``` - Error when generating empty quiz or question
 ///
 /// ```ValueError``` - Error when generating answer with too much points
+/// AnswerFractionError - Error when answer fraction is larger than 100
+/// AnswerCountError - Error when answer count is different than required
 #[derive(Debug)]
 pub enum QuizError {
-    WriterError(xml::writer::Error),
+    XMLWriterError(xml::writer::Error),
     EmptyError(String),
     ValueError(String),
+    AnswerFractionError(String),
+    AnswerCountError(String),
 }
 impl From<xml::writer::Error> for QuizError {
     fn from(e: xml::writer::Error) -> Self {
-        QuizError::WriterError(e)
+        QuizError::XMLWriterError(e)
     }
 }
 impl From<EmptyError> for QuizError {
@@ -52,98 +56,93 @@ impl fmt::Display for ValueError {
     }
 }
 
+/// A category for the quiz, can be used to categorize questions.
+/// A string type is used to represent the category.
+#[derive(Debug, Clone)]
+pub struct Category(String);
+
+impl Deref for Category {
+    type Target = String;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl From<String> for Category {
+    fn from(s: String) -> Self {
+        Category(s)
+    }
+}
+impl From<&str> for Category {
+    fn from(s: &str) -> Self {
+        Category(s.to_string())
+    }
+}
+impl From<Category> for Vec<Category> {
+    fn from(category: Category) -> Self {
+        vec![category]
+    }
+}
+
 pub struct Quiz {
-    category: String,
-    path: Option<String>,
-    questions: Vec<Question>,
+    /// A vector of questions, can be any type of a question
+    questions: Vec<QuestionType>,
+    categories: Option<Vec<Category>>,
 }
 impl Quiz {
-    /// Creates a new quiz instance with the specified moodle category and an optional path.
-    /// If a path is provided, it is stored in the `path` field.
-    /// If no path is specified, the `path` field is set to `None`.
-    /// Initializes an empty vector for the `questions` field.
-    pub fn new(new_category: String, new_path: Option<String>) -> Self {
+    /// Creates a new quiz instance with the specified moodle categories and questions.
+    /// Categories are not mandatory.
+    /// See [Moodle XML format](https://docs.moodle.org/404/en/Moodle_XML_format) for more information.
+    /// Category entry is appended after `$course$/` mark.
+    pub fn new(questions: Vec<QuestionType>) -> Self {
         Self {
-            category: new_category,
-            path: new_path,
-            questions: Vec::new(),
+            questions,
+            categories: None,
         }
     }
-    /// Adds a new question to the quiz.
-    ///
-    /// # Arguments
-    ///
-    /// * `question` - The `Question` instance to be added to the quiz.
-    ///
-    pub fn add_question(&mut self, question: Question) {
-        let new_question = Question {
-            name: question.name,
-            description: question.description,
-            question_type: question.question_type,
-            answers: question.answers,
-        };
-        self.questions.push(new_question);
-    }
-
-    pub fn add_questions(&mut self, questions: Vec<Question>) {
-        for question in questions {
-            let new_question = Question {
-                name: question.name,
-                description: question.description,
-                question_type: question.question_type,
-                answers: question.answers,
-            };
-            self.questions.push(new_question);
-        }
+    /// Adds categories to the quiz.
+    pub fn set_categories(&mut self, categories: Vec<Category>) {
+        self.categories = Some(categories);
     }
     /// Creates an XML file from quiz object, containing question and answer objects.
     ///
     /// # Arguments
     ///
-    /// - `filepath`: The path where the XML file will be saved. Use empty string to store in same folder.
-    /// - `filename`: The name of the XML file.
+    /// - `filename`: The name of the XML file, including whole filepath.
     ///
     /// # Errors
     ///
-    /// Returns an QuizError which can be of type
-    /// WriterError - `xml::writer::Error` if there's an issue writing the XML data.
-    /// EmptyError - if question or answers are empty.
-    pub fn quiz_xml(&mut self, filepath: String, filename: String) -> Result<(), QuizError> {
-        // Specify the file and its path
-        let mut file_path = filepath;
-        let file = filename;
-        file_path.push_str(&file);
-        let output: File = File::create(file_path).expect("Bad file path");
+    /// Returns an QuizError if the problem occurs during writing the XML file or requirements are not met.
 
-        let mut writer = EmitterConfig::new()
-            .perform_indent(true)
-            .create_writer(output);
-
-        writer.write(XmlEvent::start_element("quiz"))?;
-        writer.write(XmlEvent::start_element("question").attr("type", "category"))?;
-        writer.write(XmlEvent::start_element("category"))?;
-        writer.write(XmlEvent::start_element("text"))?;
-        if self.path.is_none() {
-            let string = "$course$/".to_owned();
-            let categorypath: &str = self.category.as_str();
-            let together = string + categorypath;
-            writer.write(XmlEvent::characters(together.as_str()))?;
-        } else {
-            let string = "$course$/".to_owned();
-            let categorypath: &str = self.category.as_str();
-            let cpath = self.path.as_mut().expect("not run");
-            let coursepath = cpath.as_str();
-            let together = string + coursepath + categorypath;
-            writer.write(XmlEvent::characters(together.as_str()))?;
-        }
-        writer.write(XmlEvent::end_element())?;
-        writer.write(XmlEvent::end_element())?;
-        writer.write(XmlEvent::end_element())?;
+    pub fn to_xml(&mut self, filename: &str) -> Result<(), QuizError> {
         if self.questions.is_empty() {
             return Err(EmptyError.into());
         }
-        for question in &mut self.questions {
-            question.question_xml(&mut writer)?;
+        let output: File = File::create(filename)
+            .unwrap_or_else(|e| panic!("Bad file path: {} More: {}", filename, e));
+        let mut writer = EmitterConfig::new()
+            .perform_indent(true)
+            .create_writer(&output);
+
+        writer.write(XmlEvent::start_element("quiz"))?;
+        if let Some(categories) = self.categories.as_ref() {
+            for category in categories {
+                writer.write(XmlEvent::start_element("question").attr("type", "category"))?;
+                writer.write(XmlEvent::start_element("category"))?;
+                writer.write(XmlEvent::start_element("text"))?;
+                let string = ["$course$/", category.as_str(), "/"].concat();
+                writer.write(XmlEvent::characters(string.as_str()))?;
+                writer.write(XmlEvent::end_element())?;
+                writer.write(XmlEvent::end_element())?;
+                writer.write(XmlEvent::end_element())?;
+            }
+        }
+
+        if self.questions.is_empty() {
+            return Err(EmptyError.into());
+        }
+        for question in &self.questions {
+            question.to_xml(&mut writer)?;
         }
         writer.write(XmlEvent::end_element())?;
         Ok(())

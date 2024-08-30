@@ -1,34 +1,26 @@
 #[cfg(test)]
 mod tests {
-    use moodle_xml::answer::Answer;
-    use moodle_xml::question::Question;
-    use moodle_xml::question::QuestionType;
-    use moodle_xml::quiz::Quiz;
-
+    use moodle_xml::prelude::*;
     use std::fs::File;
     use std::io::BufReader;
     use xml::reader::EventReader;
 
     #[test]
     fn test_file_creation() {
-        let mut quiz = Quiz::new("testi_categoria".into(), None);
-
-        let shortq = QuestionType::ShortAnswer;
-
-        let mut question = Question::new(
-            "Easy question".into(),
-            "Kenella on S rinnassa".into(),
-            shortq,
-        );
+        let mut question =
+            ShortAnswerQuestion::new("Easy question".into(), "Kenella on S rinnassa".into(), None);
 
         let answer = Answer::new(100, "Superman".into(), Some("Oikein".into()));
+        question.add_answers(answer.into()).unwrap();
 
-        question.add_answer(answer);
-        quiz.add_question(question);
+        let mut quiz = Quiz::new(question.into());
+        let categories = vec!["testi_categoria".into()];
+        quiz.set_categories(categories);
 
-        assert!(quiz.quiz_xml("".into(), "testi_parser.xml".into()).is_ok());
+        let tmp_file = tempfile::NamedTempFile::new().unwrap();
+        assert!(quiz.to_xml(tmp_file.path().to_str().unwrap()).is_ok());
 
-        let file = File::open("testi_parser.xml").expect("Cannot open file");
+        let file = File::open(tmp_file.path().to_str().unwrap()).expect("Cannot open file");
         let file = BufReader::new(file);
 
         let parser = EventReader::new(file);
@@ -40,123 +32,93 @@ mod tests {
 
     #[test]
     fn pointlimit_test() {
-        let mut quiz = Quiz::new("testi_categoria".into(), None);
-
-        let shortq = QuestionType::ShortAnswer;
-
-        let mut question = Question::new(
-            "Easy question".into(),
-            "Kenella on S rinnassa".into(),
-            shortq,
-        );
-
+        let mut question =
+            ShortAnswerQuestion::new("Easy question".into(), "Kenella on S rinnassa".into(), None);
         let answer = Answer::new(200, "Superman".into(), Some("Oikein".into()));
+        question.add_answers(answer.into()).unwrap();
 
-        question.add_answer(answer);
-        quiz.add_question(question);
+        let mut quiz = Quiz::new(question.into());
+        let category = vec!["testi_categoria".into()];
+        quiz.set_categories(category);
 
-        assert!(quiz.quiz_xml("".into(), "testi_quiz.xml".into()).is_err());
+        let tmp_file = tempfile::NamedTempFile::new().unwrap();
+        assert!(quiz.to_xml(tmp_file.path().to_str().unwrap()).is_err());
     }
 
     #[test]
-    fn empty_quiz() {
-        let mut quiz = Quiz::new("testi_categoria".into(), None);
+    fn no_answer_in_question() {
+        let question =
+            ShortAnswerQuestion::new("Easy question".into(), "Kenella on S rinnassa".into(), None);
 
-        // Should return error with no questions
-        assert!(quiz.quiz_xml("".into(), "testi_quiz.xml".into()).is_err());
-    }
+        let category = vec!["testi_categoria".into()];
+        let mut quiz = Quiz::new(question.into());
+        quiz.set_categories(category);
 
-    #[test]
-    fn empty_question() {
-        let mut quiz = Quiz::new("testi_categoria".into(), None);
-
-        let shortq = QuestionType::ShortAnswer;
-
-        let question = Question::new(
-            "Easy question".into(),
-            "Kenella on S rinnassa".into(),
-            shortq,
-        );
-
-        quiz.add_question(question);
-
-        assert!(quiz.quiz_xml("".into(), "testi_quiz.xml".into()).is_err());
+        let tmp_file = tempfile::NamedTempFile::new().unwrap();
+        assert!(quiz.to_xml(tmp_file.path().to_str().unwrap()).is_err());
     }
 
     #[test]
     fn character_test() {
-        let mut quiz = Quiz::new("undefined".into(), None);
-
-        let shortq = QuestionType::ShortAnswer;
-
-        let mut question = Question::new(
+        let mut question = ShortAnswerQuestion::new(
             "TRUE".into(),
             "(),./;'\"[]-=<>?:{}|\\_+!@#$%^&*()`~".into(),
-            shortq,
+            None,
         );
 
         let answer = Answer::new(100, "NaN".into(), Some("1E02".into()));
+        question.add_answers(vec![answer]).unwrap();
+        let mut quiz = Quiz::new(question.into());
 
-        question.add_answer(answer);
-        quiz.add_question(question);
-
-        assert!(quiz.quiz_xml("".into(), "testi_quiz.xml".into()).is_ok());
+        let tmp_file = tempfile::NamedTempFile::new().unwrap();
+        assert!(quiz.to_xml(tmp_file.path().to_str().unwrap()).is_ok());
     }
     #[test]
     fn answer_test() {
-        let mut quiz = Quiz::new("testi_categoria".into(), None);
-
-        let shortq = QuestionType::ShortAnswer;
-
-        let mut question = Question::new(
-            "Easy question".into(),
-            "Kenella on S rinnassa".into(),
-            shortq,
-        );
+        let mut question =
+            ShortAnswerQuestion::new("Easy question".into(), "Kenella on S rinnassa".into(), None);
 
         let answer = Answer::new(100, "Superman".into(), Some("Oikein".into()));
         let answer2 = Answer::new(0, "Batman".into(), Some("Väärin".into()));
         let answer3 = Answer::new(0, "Robin".into(), None);
         let answer4 = Answer::new(0, "Spiderman".into(), Some("Oikein".into()));
 
-        question.add_answer(answer);
-        question.add_answer(answer2);
-        question.add_answer(answer3);
-        question.add_answer(answer4);
-        quiz.add_question(question);
+        question
+            .add_answers(vec![answer, answer2, answer3, answer4])
+            .unwrap();
+        let category: Category = "testi_categoria".into();
+        let mut quiz = Quiz::new(question.into());
+        quiz.set_categories(category.into());
 
-        assert!(quiz.quiz_xml("".into(), "testi_quiz.xml".into()).is_ok());
+        let tmp_file = tempfile::NamedTempFile::new().unwrap();
+        assert!(quiz.to_xml(tmp_file.path().to_str().unwrap()).is_ok());
     }
     #[test]
     fn add_quiz_vec_xml() {
-        let mut quiz = Quiz::new("testi_categoria".into(), None);
-
-        let shortq = QuestionType::ShortAnswer;
-
         let answer1 = Answer::new(100, "Superman".into(), Some("Oikein".into()));
         let answer2 = Answer::new(100, "Spiderman".into(), Some("Oikein".into()));
         let answer3 = Answer::new(100, "Superman".into(), Some("Oikein".into()));
 
-        let answers = vec![answer1, answer2];
+        let answers = vec![answer1, answer2, answer3.clone()];
 
-        let mut question1 = Question::new(
-            "Easy question".into(),
-            "Kenella on S rinnassa".into(),
-            shortq,
-        );
-        let mut question2 = Question::new(
+        let mut question1 =
+            ShortAnswerQuestion::new("Easy question".into(), "Kenella on S rinnassa".into(), None);
+        let mut question2 = ShortAnswerQuestion::new(
             "Easier question".into(),
             "Kenella on S rinnassa".into(),
-            QuestionType::ShortAnswer,
+            None,
         );
 
-        question1.add_answers(answers);
-        question2.add_answer(answer3);
+        let _ = question1.add_answers(answers);
+        let _ = question2.add_answers(answer3.into());
 
-        let questions = vec![question1, question2];
+        let questions: Vec<QuestionType> = vec![question1.into(), question2.into()];
 
-        quiz.add_questions(questions);
+        let category: Category = "testi_categoria".into();
+        let mut quiz = Quiz::new(questions);
+        quiz.set_categories(category.into());
 
-        assert!(quiz.quiz_xml("".into(), "testi_quiz.xml".into()).is_ok());
+        let tmp_file = tempfile::NamedTempFile::new().unwrap();
+        assert!(quiz.to_xml(tmp_file.path().to_str().unwrap()).is_ok());
     }
 }
