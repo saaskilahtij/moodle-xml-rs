@@ -530,4 +530,59 @@ mod tests {
 </question>"#;
         assert_eq!(expected, buf);
     }
+    #[test]
+    fn test_truefalse_question_xml() {
+        let mut tmp_file = tempfile::tempfile().unwrap();
+        let mut writer = EmitterConfig::new()
+            .perform_indent(true)
+            .create_writer(&tmp_file);
+        let truefalse_question = TrueFalseQuestion {
+            base: QuestionBase {
+                name: "Name of question".to_string(),
+                description: "What is the answer to this question?".to_string(),
+                question_text_format: TextFormat::HTML,
+                answers: vec![
+                    Answer {
+                        fraction: 100,
+                        text: "True".to_string(),
+                        feedback: "Correct!".to_string().into(),
+                        text_format: TextFormat::HTML,
+                    },
+                    Answer {
+                        fraction: 0,
+                        text: "False".to_string(),
+                        feedback: "Ooops!".to_string().into(),
+                        text_format: TextFormat::HTML,
+                    },
+                ],
+            },
+        };
+        truefalse_question.to_xml(&mut writer).unwrap();
+
+        let mut buf = String::new();
+        tmp_file.seek(std::io::SeekFrom::Start(0)).unwrap();
+        tmp_file.read_to_string(&mut buf).unwrap();
+        let expected = r#"<?xml version="1.0" encoding="utf-8"?>
+<question type="truefalse">
+  <name>
+    <text>Name of question</text>
+  </name>
+  <questiontext format="html">
+    <text><![CDATA[What is the answer to this question?]]></text>
+  </questiontext>
+  <answer fraction="100" format="html">
+    <text>True</text>
+    <feedback format="html">
+      <text>Correct!</text>
+    </feedback>
+  </answer>
+  <answer fraction="0" format="html">
+    <text>False</text>
+    <feedback format="html">
+      <text>Ooops!</text>
+    </feedback>
+  </answer>
+</question>"#;
+        assert_eq!(expected, buf);
+    }
 }

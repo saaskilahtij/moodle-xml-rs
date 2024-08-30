@@ -13,13 +13,36 @@ Currently, multiple-choice, true-false and short answer questions are mainly sup
 use moodle_xml::prelude::*;
 
 // Create a short answer question, with name and description. Use default case sensitivity which is false.
-let mut question = ShortAnswerQuestion::new("Knowing capitals part 1".into(), "What is the capital of France?".into(), None);
+let mut question1 = ShortAnswerQuestion::new("Knowing capitals part 1".into(), "What is the capital of France?".into(), None);
 // Define the fraction value for the answer, correct answer and correct answer feedback.
 let answer = Answer::new(100, "Paris".into(), Some("Yes, correct!".into()));
-question.add_answers(answer.into()).unwrap();
+question1.add_answers(answer.into()).unwrap();
+// Create a multiple-choice question, with name and description. Set that question has a single answer and questions are shuffled.
+// Also the "abc" format is used to show the answers.
+let mut question2 = MultiChoiceQuestion::new(
+    "Name of question".into(),
+    "What is the answer to this question?".into(),
+    true.into(),
+    true.into(),
+    // Following are the general feedbacks for the question.
+    "Correct!".to_string().into(),
+    "Partially correct!".to_string().into(),
+    "Incorrect!".to_string().into(),
+    "abc".to_string().into(),
+);
+let answers = vec![
+    Answer::new(
+        100,
+        "The correct answer".into(),
+        "Correct!".to_string().into(),
+    ),
+    Answer::new(0, "A distractor".into(), "Ooops!".to_string().into()),
+    Answer::new(0, "Another distractor".into(), "Ooops!".to_string().into()),
+];
+question2.add_answers(answers).unwrap();
 
 // Create a quiz with questions
-let mut quiz = Quiz::new(question.into());
+let mut quiz = Quiz::new(vec![question1.into(), question2.into()]);
 
 // Sets a category for the quiz, which will result as "$course$/capitals" in XML, creating a new category "capitals" if it doesn't exist
 // when importing the quiz into Moodle.
@@ -55,6 +78,44 @@ The previous will generate a file named `quiz.xml` with the following content:
       </feedback>
     </answer>
     <usecase>0</usecase>
+  </question>
+  <question type="multichoice">
+    <name>
+      <text>Name of question</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[What is the answer to this question?]]></text>
+    </questiontext>
+    <answer fraction="100" format="html">
+      <text>The correct answer</text>
+      <feedback format="html">
+        <text>Correct!</text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text>A distractor</text>
+      <feedback format="html">
+        <text>Ooops!</text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text>Another distractor</text>
+      <feedback format="html">
+        <text>Ooops!</text>
+      </feedback>
+    </answer>
+    <single>true</single>
+    <shuffleanswers>1</shuffleanswers>
+    <correctfeedback format="html">
+      <text>Correct!</text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text>Partially correct!</text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text>Incorrect!</text>
+    </incorrectfeedback>
+    <answernumbering>abc</answernumbering>
   </question>
 </quiz>
 ```
