@@ -31,32 +31,32 @@ let filename = "quiz.xml";
 quiz.to_xml(filename).unwrap();
 ```
 
-The previous will generate a file named "quiz.xml" with the following content:
+The previous will generate a file named `quiz.xml` with the following content:
 
 ```xml
-    <?xml version="1.0" encoding="utf-8"?>
-    <quiz>
-      <question type="category">
-        <category>
-          <text>$course$/capitals/</text>
-        </category>
-      </question>
-      <question type="shortanswer">
-        <name>
-          <text>Knowing capitals part 1</text>
-        </name>
-        <questiontext format="html">
-          <text><![CDATA[What is the capital of France?]]></text>
-        </questiontext>
-        <answer fraction="100" format="html">
-          <text>Paris</text>
-          <feedback format="html">
-            <text>Yes, correct!</text>
-          </feedback>
-        </answer>
-        <usecase>0</usecase>
-      </question>
-    </quiz>
+<?xml version="1.0" encoding="utf-8"?>
+<quiz>
+  <question type="category">
+    <category>
+      <text>$course$/capitals/</text>
+    </category>
+  </question>
+  <question type="shortanswer">
+    <name>
+      <text>Knowing capitals part 1</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[What is the capital of France?]]></text>
+    </questiontext>
+    <answer fraction="100" format="html">
+      <text>Paris</text>
+      <feedback format="html">
+        <text>Yes, correct!</text>
+      </feedback>
+    </answer>
+    <usecase>0</usecase>
+  </question>
+</quiz>
 ```
 
 ## License
