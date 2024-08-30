@@ -191,19 +191,19 @@ impl Question for MultiChoiceQuestion {
             writer,
             "correctfeedback",
             TextFormat::default().into(),
-            |writer| write_text_tag(writer, &self.correctfeedback, false),
+            |writer| write_text_tag(writer, &self.correctfeedback, true),
         )?;
         write_named_formatted_scope(
             writer,
             "partiallycorrectfeedback",
             TextFormat::default().into(),
-            |writer| write_text_tag(writer, &self.partiallycorrectfeedback, false),
+            |writer| write_text_tag(writer, &self.partiallycorrectfeedback, true),
         )?;
         write_named_formatted_scope(
             writer,
             "incorrectfeedback",
             TextFormat::default().into(),
-            |writer| write_text_tag(writer, &self.incorrectfeedback, false),
+            |writer| write_text_tag(writer, &self.incorrectfeedback, true),
         )?;
         write_named_formatted_scope(writer, "answernumbering", None, |writer| {
             writer.write(XmlEvent::characters(&self.answernumbering.to_string()))?;
@@ -492,6 +492,7 @@ mod tests {
         let mut buf = String::new();
         tmp_file.seek(std::io::SeekFrom::Start(0)).unwrap();
         tmp_file.read_to_string(&mut buf).unwrap();
+        print!("{buf}");
         let expected = r#"<?xml version="1.0" encoding="utf-8"?>
 <question type="multichoice">
   <name>
@@ -521,13 +522,13 @@ mod tests {
   <single>true</single>
   <shuffleanswers>1</shuffleanswers>
   <correctfeedback format="html">
-    <text>Correct!</text>
+    <text><![CDATA[Correct!]]></text>
   </correctfeedback>
   <partiallycorrectfeedback format="html">
-    <text>Partially correct!</text>
+    <text><![CDATA[Partially correct!]]></text>
   </partiallycorrectfeedback>
   <incorrectfeedback format="html">
-    <text>Incorrect!</text>
+    <text><![CDATA[Incorrect!]]></text>
   </incorrectfeedback>
   <answernumbering>abc</answernumbering>
 </question>"#;
