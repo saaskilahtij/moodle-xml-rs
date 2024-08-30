@@ -1,10 +1,16 @@
 [package]
-name = "moodle_xml"
+name = "moodle-xml"
+description = "A library for generating Moodle quizzes in XML format."
+repository = "https://github.com/ouspg/moodle-xml-rs"
+authors = ["Niklas Saari", "Eetu Lassi"]
+readme = "README.md"
 version = "0.1.0"
 edition = "2021"
+license-file = "LICENSE"
+keywords = ["moodle", "xml", "quiz"]
 
 [dependencies]
-xml-rs = "0.8.20"
+xml-rs = "0.8"
 
 [dev-dependencies]
 tempfile = "3"
