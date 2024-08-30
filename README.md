@@ -9,6 +9,14 @@ The library attempts to ensure that the generated XML is valid and can be import
 
 Currently, multiple-choice, true-false and short answer questions are mainly supported.
 
+To install, run:
+
+```sh
+cargo add moodle-xml
+```
+
+Then, you can use the library as follows:
+
 ```rust
 use moodle_xml::prelude::*;
 
