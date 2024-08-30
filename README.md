@@ -50,8 +50,10 @@ let categories = vec!["capitals".into()];
 quiz.set_categories(categories);
 
 // Generate the XML.
-let filename = "quiz.xml";
-quiz.to_xml(filename).unwrap();
+// let filename = "quiz.xml";
+// Since this runs as part of tests, we use a temporary file.
+let tmp_file = tempfile::NamedTempFile::new().unwrap();
+quiz.to_xml(tmp_file.path().to_str().unwrap());
 ```
 
 The previous will generate a file named `quiz.xml` with the following content:
