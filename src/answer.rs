@@ -5,11 +5,16 @@ use crate::question::TextFormat;
 use crate::quiz::QuizError;
 use crate::xml_util::{write_named_formatted_scope, write_text_tag};
 
+/// Answer type struct, which is common for all question types.
 #[derive(Debug, Clone)]
 pub struct Answer {
+    /// Fraction of the answer, 0-100
     pub fraction: u8,
+    /// The answer text
     pub text: String,
+    /// Optional feedback for the answer
     pub feedback: Option<String>,
+    /// Text format for the answer and feedback, defines the rendering format for Moodle.
     pub text_format: TextFormat,
 }
 

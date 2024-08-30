@@ -215,6 +215,7 @@ impl Question for MultiChoiceQuestion {
     }
 }
 
+/// True/False question type. The amount of answers is fixed to 2, where one answer must have 100 fraction.
 #[derive(Debug, Clone)]
 pub struct TrueFalseQuestion {
     base: QuestionBase,
@@ -277,6 +278,7 @@ impl Question for TrueFalseQuestion {
     }
 }
 
+/// Short answer question type.
 #[derive(Debug, Clone)]
 pub struct ShortAnswerQuestion {
     base: QuestionBase,
@@ -321,6 +323,7 @@ impl Question for ShortAnswerQuestion {
     }
 }
 
+/// Essay question type. There are no answers for this question type.
 #[derive(Debug, Clone)]
 pub struct EssayQuestion {
     base: QuestionBase,

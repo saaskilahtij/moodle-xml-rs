@@ -57,7 +57,7 @@ impl fmt::Display for ValueError {
 }
 
 /// A category for the quiz, can be used to categorize questions.
-/// A string type is used to represent the category.
+/// A string type is used internally to represent the category.
 #[derive(Debug, Clone)]
 pub struct Category(String);
 
@@ -84,6 +84,7 @@ impl From<Category> for Vec<Category> {
     }
 }
 
+/// A quiz struct that contains a vector of questions and optional categories.
 pub struct Quiz {
     /// A vector of questions, can be any type of a question
     questions: Vec<QuestionType>,
