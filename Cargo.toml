@@ -10,6 +10,7 @@ license = "MIT"
 keywords = ["moodle", "xml", "quiz"]
 
 [dependencies]
+cargo-fuzz = "0.12.0"
 xml-rs = "0.8"
 
 [dev-dependencies]
